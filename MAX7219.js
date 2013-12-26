@@ -1,49 +1,38 @@
 "use strict";
 
 var fs = require("fs");
-var SPI = require("spi");
 
 /**
  * MAX7219 abstraction.
  * Please read the datasheet: https://www.adafruit.com/datasheets/MAX7219.pdf
  *
  * Example use:
- *  var disp = new MAX7219("/dev/spidev1.0", function() {
- *    disp.setDecodeNone();
- *    disp.setScanLimit(8);
- *    disp.startup();
- *    disp.setDigitSegments(0, [0, 0, 1, 1, 0, 1, 1, 1]);
- *    disp.setDigitSegments(1, [0, 1, 0, 0, 1, 1, 1, 1]);
- *    disp.setDigitSegments(2, [0, 0, 0, 0, 1, 1, 1, 0]);
- *    disp.setDigitSegments(3, [0, 1, 1, 0, 0, 1, 1, 1]);
- *  });
+ *  var disp = new MAX7219("/dev/spidev1.0");
+ *  disp.setDecodeNone();
+ *  disp.setScanLimit(8);
+ *  disp.startup();
+ *  disp.setDigitSegments(0, [0, 0, 1, 1, 0, 1, 1, 1]);
+ *  disp.setDigitSegments(1, [0, 1, 0, 0, 1, 1, 1, 1]);
+ *  disp.setDigitSegments(2, [0, 0, 0, 0, 1, 1, 1, 0]);
+ *  disp.setDigitSegments(3, [0, 1, 1, 0, 0, 1, 1, 1]);
  *
  * Alternate use:
- *  var disp = new MAX7219("/dev/spidev1.0", function() {
- *    disp.setDecodeAll();
- *    disp.setScanLimit(8);
- *    disp.startup();
- *    disp.setDigitSymbol(0, "H");
- *    disp.setDigitSymbol(1, "E");
- *    disp.setDigitSymbol(2, "L");
- *    disp.setDigitSymbol(3, "P");
- *  });
+ *  var disp = new MAX7219("/dev/spidev1.0");
+ *  disp.setDecodeAll();
+ *  disp.setScanLimit(8);
+ *  disp.startup();
+ *  disp.setDigitSymbol(0, "H");
+ *  disp.setDigitSymbol(1, "E");
+ *  disp.setDigitSymbol(2, "L");
+ *  disp.setDigitSymbol(3, "P");
  *
  * @param string device
  *        The SPI device on which the controller is wired.
  *        For example, "/dev/spidev1.0".
  */
-function MAX7219(device, callback) {
-  this._spi = new SPI.Spi(device, {
-    mode: SPI.MODE.MODE_0,
-    chipSelect: SPI.CS.low
-  },
-  function(controller) {
-    controller.open();
-    process.nextTick(function() {
-      callback();
-    });
-  });
+function MAX7219(device) {
+  this._spi = fs.openSync(device, "w");
+  this._buffer = new Buffer(2);
 }
 
 /**
@@ -305,7 +294,9 @@ MAX7219.prototype = {
     if (!this._spi) {
       throw "SPI device not initialized";
     }
-    this._spi.write(new Buffer([firstByte, secondByte]));
+    this._buffer[0] = firstByte;
+    this._buffer[1] = secondByte;
+    fs.writeSync(this._spi, this._buffer, 0, 2);
   }
 };
 
