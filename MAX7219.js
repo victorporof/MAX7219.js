@@ -1,6 +1,7 @@
 "use strict";
 
 var fs = require("fs");
+var SPI = require("spi");
 
 /**
  * MAX7219 abstraction.
@@ -29,10 +30,20 @@ var fs = require("fs");
  * @param string device
  *        The SPI device on which the controller is wired.
  *        For example, "/dev/spidev1.0".
+ * @param number count [optional]
+ *        The total number of controllers when daisy-chained. Defaults to 1.
  */
-function MAX7219(device) {
-  this._spi = fs.openSync(device, "w");
-  this._buffer = new Buffer(2);
+function MAX7219(device, count) {
+  this._activeController = 0;
+  this._totalControllers = count || 1;
+  this._buffer = new Buffer(this._totalControllers * 2);
+
+  this._spi = new SPI.Spi(device, {
+    mode: SPI.MODE.MODE_0,
+    chipSelect: SPI.CS.low
+  }, function(s) {
+    s.open();
+  });
 }
 
 /**
@@ -80,6 +91,26 @@ MAX7219._Font = {
 };
 
 MAX7219.prototype = {
+  /**
+   * When daisy-chaining MAX7219s, specifies which chip is currently controlled.
+   *
+   * @param number index
+   *        The index of the chip to control.
+   */
+  setActiveController: function(index) {
+    if (index < 0 || index >= this._totalControllers) {
+      throw "Controller index is out of bounds";
+    }
+    this._activeController = index;
+  },
+
+  /**
+   * Returns which chip is currently controlled.
+   */
+  getActiveController: function() {
+    return this._activeController;
+  },
+
   /**
    * Sets this controller in normal operation mode.
    *
@@ -135,6 +166,7 @@ MAX7219.prototype = {
     if (modes.length != 8) {
       throw "Invalid decode mode array";
     }
+    this._decodeModes = modes;
     this._shiftOut(MAX7219._Registers.DecodeMode, this.encodeByte(modes));
   },
 
@@ -142,14 +174,14 @@ MAX7219.prototype = {
    * Shortcut for specifying that all digits are in no-decode mode.
    */
   setDecodeNone: function() {
-    this._shiftOut(MAX7219._Registers.DecodeMode, 0x00);
+    this.setDecodeMode([0,0,0,0,0,0,0,0])
   },
 
   /**
    * Shortcut for specifying that all digits are in decode mode.
    */
   setDecodeAll: function() {
-    this._shiftOut(MAX7219._Registers.DecodeMode, 0xff);
+    this.setDecodeMode([1,1,1,1,1,1,1,1])
   },
 
   /**
@@ -212,6 +244,28 @@ MAX7219.prototype = {
   },
 
   /**
+   * Sets all segments for all digits off.
+   *
+   * Shortcut for manually calling setDigitSegments or setDigitSymbol
+   * with the appropriate params. If a decode mode wasn't specifically set
+   * beforehand, no-decode mode is assumed.
+   */
+  clearDisplay: function() {
+    if (!this._decodeModes) {
+      this.setDecodeNone();
+    }
+
+    for (var i = 0; i < this._decodeModes.length; i++) {
+      var mode = this._decodeModes[i];
+      if (mode == 0) {
+        this.setDigitSegmentsByte(i, 0x00);
+      } else {
+        this.setDigitSymbol(i, " ", false);
+      }
+    }
+  },
+
+  /**
    * Sets digital control of display brightness.
    *
    * @param number brightness
@@ -237,14 +291,6 @@ MAX7219.prototype = {
       throw "Invalid scan limit number";
     }
     this._shiftOut(MAX7219._Registers.ScanLimit, limit - 1);
-  },
-
-  /**
-   * The no-op register is used when cascading MAX7219s.
-   * This method sends one no-op code.
-   */
-  sendNoOpCode: function() {
-    this._shiftOut(MAX7219._Registers.NoOp, 0);
   },
 
   /**
@@ -279,9 +325,17 @@ MAX7219.prototype = {
     if (!this._spi) {
       throw "SPI device not initialized";
     }
-    this._buffer[0] = firstByte;
-    this._buffer[1] = secondByte;
-    fs.writeSync(this._spi, this._buffer, 0, 2);
+
+    for (var i = 0; i < this._buffer.length; i += 2) {
+      this._buffer[i] = MAX7219._Registers.NoOp;
+      this._buffer[i + 1] = 0x00;
+    }
+
+    var offset = this._activeController * 2;
+    this._buffer[offset] = firstByte;
+    this._buffer[offset + 1] = secondByte;
+
+    this._spi.write(this._buffer);
   }
 };
 
