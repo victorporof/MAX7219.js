@@ -5,7 +5,7 @@ JavaScript abstraction for the MAX7219 display driver controller.
 
 Please read the datasheet for this chip [here](https://www.adafruit.com/datasheets/MAX7219.pdf).
 
-#### Example
+#### How to use
 The "digits and segments" language isn't dissolved away by the API, to make your life easier when wiring the controller. Obviously, you can think of them as "cathodes and anodes" respectively when using this library. Multiplexing and persistence of vision is handled by the MAX7219, you only need to turn anodes on or off. Here's a quick example:
 ```javascript
 var disp = new MAX7219("/dev/spidev1.0");
@@ -99,3 +99,6 @@ Sets how many digits are displayed, from 1 digit to 8 digits. The `limit` parame
 * __**`sendNoOpCode(limit)`**__
 
 The no-op register is used when cascading MAX7219s. This method sends one no-op code.
+
+
+Thanks for reading. Happy multiplexing.
