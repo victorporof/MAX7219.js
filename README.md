@@ -119,7 +119,7 @@ Sets digital control of display brightness. The `brightness` parameter may be a 
 
 Sets how many digits are displayed, from 1 digit to 8 digits. The `limit` parameter specifies the number of digits displayed, counting from first to last. E.g., to display only the first digit, limit would be 1. Another e.g., to display only digits 0, 1 and 2, limit would be 3.
 
-* __**`sendNoOpCode(limit)`**__
+* __**`sendNoOpCode()`**__
 
 The no-op register is used when cascading MAX7219s. This method sends one no-op code.
 
