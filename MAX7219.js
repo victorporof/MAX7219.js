@@ -268,21 +268,6 @@ MAX7219.prototype = {
   },
 
   /**
-   * Utility function. Reverses the bits inside a byte.
-   *
-   * @param number byte
-   *        The byte for which to reverse the bits
-   * @reutrn number
-   *         E.g., 131 (10000011 in binary) returns 1100001.
-   */
-  reverseBits: function(byte) {
-    byte = (byte & 0xF0) >> 4 | (byte & 0x0F) << 4;
-    byte = (byte & 0xCC) >> 2 | (byte & 0x33) << 2;
-    byte = (byte & 0xAA) >> 1 | (byte & 0x55) << 1;
-    return byte;
-  },
-
-  /**
    * Shifts two bytes to the SPI device.
    *
    * @param number firstByte
