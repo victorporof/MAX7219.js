@@ -30,7 +30,9 @@ disp.setDigitSymbol(3, "P");
 
 ## Prerequisites
 
-You'll need to make sure SPI devices are enabled (and you have a reasonably up-to-date Linux kernel). Here's how you can check this:
+The `node-spi` library is required. Get it from [here](https://github.com/RussTheAerialist/node-spi), or via `npm install spi`.
+
+You'll also need to make sure SPI devices are enabled (and you have a reasonably up-to-date Linux kernel). Here's how you can check this:
 
 Ensure that the SPI driver is enabled:
 ```
@@ -55,9 +57,17 @@ Easy as PI! Simply `sudo nano /etc/modprobe.d/raspi-blacklist.conf` and add a `#
 
 ## API
 
-* Constructor __**`MAX7219(device)`**__
+* Constructor __**`MAX7219(device, count)`**__
 
-Initializes an instance of the controller abstraction. The `device` argument is a string specifying the SPI device on which the controller is wired. For example, `"/dev/spidev1.0"`.
+Initializes an instance of the controller abstraction. The `device` argument is a string specifying the SPI device on which the controller is wired. For example, `"/dev/spidev1.0"`. The optional `count` argument specifies the total number of chips when several MAX7219s are daisy-chained.
+
+* __**`setActiveController(index)`**__
+
+When daisy-chaining MAX7219s, specifies which chip is currently controlled. The `index` parameter is a number identifying the chip to control. By default, the chip at index 0 is controlled.
+
+* __**`getActiveController(index)`**__
+
+Returns which chip is currently controlled.
 
 * __**`startup()`**__
 
@@ -111,17 +121,17 @@ Same as `setDigitSegments`, but it takes a byte instead of an array of bits.
 Sets the symbol displayed in a digit.
 *For this to work properly, the digit should be in decode mode.* The first parameter, `n` is the digit number, from 0 up to and including 7. The `symbol` parameter is a string specifying the symbol do display: `"0"`..`"9"`, `"E"`, `"H"`, `"L"`, `"P"`, `"-"` or `" "`. The `dp` parameter is a boolean specifying whether the decimal point should be on or off.
 
+* __**`clearDisplay()`**__
+
+Sets all segments for all digits off. This is a shortcut for manually calling `setDigitSegments` or `setDigitSymbol` with the appropriate params. If a decode mode wasn't specifically set beforehand, no-decode mode is assumed.
+
 * __**`setDisplayIntensity(brightness)`**__
 
-Sets digital control of display brightness. The `brightness` parameter may be a number from 0 (dimmest) up to and including 15 (brightest).
+Sets digital control of display brightness. The `brightnesss` parameter may be a number from 0 (dimmest) up to and including 15 (brightest).
 
 * __**`setScanLimit(limit)`**__
 
 Sets how many digits are displayed, from 1 digit to 8 digits. The `limit` parameter specifies the number of digits displayed, counting from first to last. E.g., to display only the first digit, limit would be 1. Another e.g., to display only digits 0, 1 and 2, limit would be 3.
-
-* __**`sendNoOpCode()`**__
-
-The no-op register is used when cascading MAX7219s. This method sends one no-op code.
 
 ### EOF
 
