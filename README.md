@@ -1,11 +1,9 @@
 MAX7219.js
 ==========
 
-JavaScript abstraction for the MAX7219 display driver controller.
+JavaScript abstraction for the MAX7219 display driver controller. Please read the datasheet for this chip [here](https://www.adafruit.com/datasheets/MAX7219.pdf).
 
-Please read the datasheet for this chip [here](https://www.adafruit.com/datasheets/MAX7219.pdf).
-
-#### How to use
+## How to use
 The "digits and segments" language isn't dissolved away by the API, to make your life easier when wiring the controller. Obviously, you can think of them as "cathodes and anodes" respectively when using this library. Multiplexing and persistence of vision is handled by the MAX7219, you only need to turn anodes on or off. Here's a quick example:
 ```javascript
 var disp = new MAX7219("/dev/spidev1.0");
@@ -30,7 +28,32 @@ disp.setDigitSymbol(2, "L");
 disp.setDigitSymbol(3, "P");
 ```
 
-#### API
+## Prerequisites
+
+You'll need to make sure SPI devices are enabled (and you have a reasonably up-to-date Linux kernel). Here's how you can check this:
+
+Ensure that the SPI driver is enabled:
+```
+$ dmesg | grep spi
+[    3.769841] bcm2708_spi bcm2708_spi.0: master is unqueued, this is deprecated
+[    3.793364] bcm2708_spi bcm2708_spi.0: SPI Controller at 0x20204000 (irq 80)
+```
+The devices are successfully installed in /dev:
+```shell
+$ ls -l /dev/spi*
+crw------- 1 root root 153, 0 Jan  1  2000 /dev/spidev1.0
+crw------- 1 root root 153, 1 Jan  1  2000 /dev/spidev2.0
+```
+
+### Enabling SPI on the BeagleBone Black
+
+You're going to have to compile some device tree overlays. It's pretty easy, just follow the steps described [here](http://elinux.org/BeagleBone_Black_Enable_SPIDEV).
+
+### Enabling SPI on the Raspberry PI
+
+Easy as PI! Simply `sudo nano /etc/modprobe.d/raspi-blacklist.conf` and add a `#` character in front of the line `spi-bcm2708`. Use CTRL-X, then Y, then Return to save the file and exit. Reboot.
+
+## API
 
 * Constructor __**`MAX7219(device)`**__
 
@@ -100,5 +123,6 @@ Sets how many digits are displayed, from 1 digit to 8 digits. The `limit` parame
 
 The no-op register is used when cascading MAX7219s. This method sends one no-op code.
 
+### EOF
 
 Thanks for reading. Happy multiplexing.
