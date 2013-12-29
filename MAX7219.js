@@ -35,8 +35,10 @@ var SPI = require("spi");
  *        For example, "/dev/spidev1.0".
  * @param number count [optional]
  *        The total number of controllers when daisy-chained. Defaults to 1.
+ * @param function callback [optional]
+ *        Invoked once the connection to the SPI device is finished.
  */
-function MAX7219(device, count) {
+function MAX7219(device, count, callback) {
   this._activeController = 0;
   this._totalControllers = count || 1;
   this._buffer = new Buffer(this._totalControllers * 2);
@@ -46,6 +48,7 @@ function MAX7219(device, count) {
     chipSelect: SPI.CS.low
   }, function(s) {
     s.open();
+    process.nextTick(callback || function(){});
   });
 }
 
@@ -120,9 +123,12 @@ MAX7219.prototype = {
    * On initial power-up, all control registers are reset, the display is
    * blanked, and the MAX7219 enters shutdown mode. This method sets
    * the controller back in normal operation mode.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  startup: function() {
-    this._shiftOut(MAX7219._Registers.Shutdown, 0x01);
+  startup: function(callback) {
+    this._shiftOut(MAX7219._Registers.Shutdown, 0x01, callback);
   },
 
   /**
@@ -130,9 +136,12 @@ MAX7219.prototype = {
    *
    * When the MAX7219 is in shutdown mode, the scan oscillator is halted, all
    * segment current sources are pulled to ground, and the display is blanked.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  shutdown: function() {
-    this._shiftOut(MAX7219._Registers.Shutdown, 0x00);
+  shutdown: function(callback) {
+    this._shiftOut(MAX7219._Registers.Shutdown, 0x00, callback);
   },
 
   /**
@@ -140,16 +149,22 @@ MAX7219.prototype = {
    *
    * Display-test mode turns all LEDs on by overriding, but not altering, all
    * controls and digit registers (including the shutdown register).
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  startDisplayTest: function() {
-    this._shiftOut(MAX7219._Registers.DisplayTest, 0x01);
+  startDisplayTest: function(callback) {
+    this._shiftOut(MAX7219._Registers.DisplayTest, 0x01, callback);
   },
 
   /**
    * Sets this controller back into the previous operation mode.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  stopDisplayTest: function() {
-    this._shiftOut(MAX7219._Registers.DisplayTest, 0x00);
+  stopDisplayTest: function(callback) {
+    this._shiftOut(MAX7219._Registers.DisplayTest, 0x00, callback);
   },
 
   /**
@@ -164,27 +179,36 @@ MAX7219.prototype = {
    *        An array of decode/no-decode modes for each digit.
    *        E.g., to set decode mode for digits 0–3 and no-decode for 4–7,
    *        modes would be [1,1,1,1,0,0,0,0].
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeMode: function(modes) {
+  setDecodeMode: function(modes, callback) {
     if (modes.length != 8) {
       throw "Invalid decode mode array";
     }
     this._decodeModes = modes;
-    this._shiftOut(MAX7219._Registers.DecodeMode, this.encodeByte(modes));
+    this._shiftOut(MAX7219._Registers.DecodeMode, this.encodeByte(modes), callback);
   },
 
   /**
    * Shortcut for specifying that all digits are in no-decode mode.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeNone: function() {
-    this.setDecodeMode([0,0,0,0,0,0,0,0])
+  setDecodeNone: function(callback) {
+    this.setDecodeMode([0,0,0,0,0,0,0,0], callback);
   },
 
   /**
    * Shortcut for specifying that all digits are in decode mode.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeAll: function() {
-    this.setDecodeMode([1,1,1,1,1,1,1,1])
+  setDecodeAll: function(callback) {
+    this.setDecodeMode([1,1,1,1,1,1,1,1], callback);
   },
 
   /**
@@ -206,22 +230,28 @@ MAX7219.prototype = {
    *        E.g., to specify dp, c, d, e and g on, and a, b, f off,
    *        segments would be [1, 0, 0, 1, 1, 1, 0, 1], corresponding
    *        to the structure [dp, a, b, c, d, e, f, g].
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSegments: function(n, segments) {
+  setDigitSegments: function(n, segments, callback) {
     if (n < 0 || n > 7) {
       throw "Invalid digit number";
     }
     if (segments.length != 8) {
       throw "Invalid segments array";
     }
-    this.setDigitSegmentsByte(n, this.encodeByte(segments));
+    this.setDigitSegmentsByte(n, this.encodeByte(segments), callback);
   },
 
   /**
    * Same as setDigitSegments, but it takes a byte instead of an array of bits.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSegmentsByte: function(n, byte) {
-    this._shiftOut(MAX7219._Registers["Digit" + n], byte);
+  setDigitSegmentsByte: function(n, byte, callback) {
+    this._shiftOut(MAX7219._Registers["Digit" + n], byte, callback);
   },
 
   /**
@@ -234,8 +264,11 @@ MAX7219.prototype = {
    *        The symbol do display: "0".."9", "E", "H", "L", "P", "-" or " ".
    * @param boolean dp
    *        Specifies if the decimal point should be on or off.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSymbol: function(n, symbol, dp) {
+  setDigitSymbol: function(n, symbol, dp, callback) {
     if (n < 0 || n > 7) {
       throw "Invalid digit number";
     }
@@ -243,7 +276,7 @@ MAX7219.prototype = {
       throw "Invalid symbol string";
     }
     var byte = MAX7219._Font[symbol] | (dp ? (1 << 7) : 0);
-    this._shiftOut(MAX7219._Registers["Digit" + n], byte);
+    this._shiftOut(MAX7219._Registers["Digit" + n], byte, callback);
   },
 
   /**
@@ -252,8 +285,11 @@ MAX7219.prototype = {
    * Shortcut for manually calling setDigitSegments or setDigitSymbol
    * with the appropriate params. If a decode mode wasn't specifically set
    * beforehand, no-decode mode is assumed.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  clearDisplay: function() {
+  clearDisplay: function(callback) {
     if (!this._decodeModes) {
       this.setDecodeNone();
     }
@@ -261,9 +297,9 @@ MAX7219.prototype = {
     for (var i = 0; i < this._decodeModes.length; i++) {
       var mode = this._decodeModes[i];
       if (mode == 0) {
-        this.setDigitSegmentsByte(i, 0x00);
+        this.setDigitSegmentsByte(i, 0x00, callback);
       } else {
-        this.setDigitSymbol(i, " ", false);
+        this.setDigitSymbol(i, " ", false, callback);
       }
     }
   },
@@ -273,12 +309,15 @@ MAX7219.prototype = {
    *
    * @param number brightness
    *        The brightness from 0 (dimmest) up to and including 15 (brightest).
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setDisplayIntensity: function(brightness) {
+  setDisplayIntensity: function(brightness, callback) {
     if (brightness < 0 || brightness > 15) {
       throw "Invalid brightness number";
     }
-    this._shiftOut(MAX7219._Registers.Intensity, brightness);
+    this._shiftOut(MAX7219._Registers.Intensity, brightness, callback);
   },
 
   /**
@@ -288,12 +327,15 @@ MAX7219.prototype = {
    *        The number of digits displayed, counting from first to last.
    *        E.g., to display only the first digit, limit would be 1.
    *        E.g., to display only digits 0, 1 and 2, limit would be 3.
+   *
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  setScanLimit: function(limit) {
+  setScanLimit: function(limit, callback) {
     if (limit < 1 || limit > 8) {
       throw "Invalid scan limit number";
     }
-    this._shiftOut(MAX7219._Registers.ScanLimit, limit - 1);
+    this._shiftOut(MAX7219._Registers.ScanLimit, limit - 1, callback);
   },
 
   /**
@@ -323,8 +365,10 @@ MAX7219.prototype = {
    *        The first byte, as a number.
    * @param number secondByte
    *        The second byte, as a number.
+   * @param function callback [optional]
+   *        Invoked once the write to the SPI device finishes.
    */
-  _shiftOut: function(firstByte, secondByte) {
+  _shiftOut: function(firstByte, secondByte, callback) {
     if (!this._spi) {
       throw "SPI device not initialized";
     }
@@ -338,7 +382,7 @@ MAX7219.prototype = {
     this._buffer[offset] = firstByte;
     this._buffer[offset + 1] = secondByte;
 
-    this._spi.write(this._buffer);
+    this._spi.write(this._buffer, callback);
   }
 };
 
