@@ -49,11 +49,13 @@ crw------- 1 root root 153, 1 Jan  1  2000 /dev/spidev2.0
 
 ### Enabling SPI on the BeagleBone Black
 
-You're going to have to compile some device tree overlays. It's pretty easy, just follow the steps described [here](http://elinux.org/BeagleBone_Black_Enable_SPIDEV).
+The fastest way would be to use [the BeagleBone-SPI-UART library](https://github.com/victorporof/BeagleBone-SPI-UART).
+
+Alternatively, you're going to have to compile some device tree overlays. It's pretty easy, just follow the steps described [here](http://elinux.org/BeagleBone_Black_Enable_SPIDEV).
 
 ### Enabling SPI on the Raspberry PI
 
-Easy as PI! Simply `sudo nano /etc/modprobe.d/raspi-blacklist.conf` and add a `#` character in front of the line `spi-bcm2708`. Use CTRL-X, then Y, then Return to save the file and exit. Reboot.
+Easy as pie! Simply `sudo nano /etc/modprobe.d/raspi-blacklist.conf` and add a `#` character in front of the line `spi-bcm2708`. Use CTRL-X, then Y, then Return to save the file and exit. Reboot.
 
 ## API
 
