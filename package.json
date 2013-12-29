@@ -1,0 +1,33 @@
+{
+  "name": "max7219",
+  "version": "1.0.1",
+  "description": "Abstraction for the MAX7219 display driver controller",
+  "main": "MAX7219.js",
+  "dependencies": {
+    "spi": "~0.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victorporof/MAX7219.js.git"
+  },
+  "keywords": [
+    "hardware",
+    "max7219",
+    "display",
+    "driver",
+    "raspberrypi",
+    "beaglebone",
+    "black",
+    "spi"
+  ],
+  "author": "Victor Porof <victor.porof@gmail.com> (https://github.com/victorporof)",
+  "license": "MPL 2.0",
+  "bugs": {
+    "url": "https://github.com/victorporof/MAX7219.js/issues"
+  },
+  "homepage": "https://github.com/victorporof/MAX7219.js"
+}
