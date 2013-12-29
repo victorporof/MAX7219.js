@@ -57,7 +57,7 @@ Easy as PI! Simply `sudo nano /etc/modprobe.d/raspi-blacklist.conf` and add a `#
 
 ## API
 
-* Constructor __**`MAX7219(device, count)`**__
+* Constructor __**`MAX7219(device, count, callback)`**__
 
 Initializes an instance of the controller abstraction. The `device` argument is a string specifying the SPI device on which the controller is wired. For example, `"/dev/spidev1.0"`. The optional `count` argument specifies the total number of chips when several MAX7219s are daisy-chained.
 
@@ -69,36 +69,36 @@ When daisy-chaining MAX7219s, specifies which chip is currently controlled. The 
 
 Returns which chip is currently controlled.
 
-* __**`startup()`**__
+* __**`startup(callback)`**__
 
 Sets this controller in normal operation mode. On initial power-up, all control registers are reset, the display is blanked, and the MAX7219 enters shutdown mode. This method sets the controller back in normal operation mode.
 
-* __**`shutdown()`**__
+* __**`shutdown(callback)`**__
 
 Sets this controller in shutdown mode. When the MAX7219 is in shutdown mode, the scan oscillator is halted, all segment current sources are pulled to ground, and the display is blanked.
 
-* __**`startDisplayTest()`**__
+* __**`startDisplayTest(callback)`**__
 
 Sets this controller in display-test mode. Display-test mode turns all LEDs on by overriding, but not altering, all controls and digit registers (including the shutdown register).
 
-* __**`stopDisplayTest()`**__
+* __**`stopDisplayTest(callback)`**__
 
 Sets this controller back into the previous operation mode.
 
-* __**`setDecodeMode(modes)`**__
+* __**`setDecodeMode(modes, callback)`**__
 
 Sets this controller's decode mode, specifying how the segments controlled
 by the MAX7219 are set on/off. When no-decode is selected, data bits correspond to the segments directly. When decode mode is selected, certain symbols (only `0`-`9`, `E`, `H`, `L`, `P`, and `-`) are encoded in a specific way. This is useful for BCD 7 segment displays. The `modes` argument is an array of decode/no-decode modes for each digit. E.g., to set decode mode for digits 0–3 and no-decode for 4–7, modes would be `[1, 1, 1, 1, 0, 0, 0, 0]`.
 
-* __**`setDecodeNone()`**__
+* __**`setDecodeNone(callback)`**__
 
 Shortcut for specifying that all digits are in no-decode mode.
 
-* __**`setDecodeAll()`**__
+* __**`setDecodeAll(callback)`**__
 
 Shortcut for specifying that all digits are in decode mode.
 
-* __**`setDigitSegments(n, segments)`**__
+* __**`setDigitSegments(n, segments, callback)`**__
 
 Sets each segment in a digit on/off.
 *For this to work properly, the digit should be in no-decode mode.* The segments are identified as follows:
@@ -112,27 +112,31 @@ Sets each segment in a digit on/off.
 ```
 The first parameter, `n`, is the digit number, from 0 up to and including 7. The `segments` parameter is a list specifying whether segments are on and off. E.g., to specify `dp`, `c`, `d`, `e` and `g` on, and `a`, `b`, `f` off, segments would be `[1, 0, 0, 1, 1, 1, 0, 1]`, corresponding to the structure `[dp, a, b, c, d, e, f, g]`.
 
-* __**`setDigitSegmentsByte(byte)`**__
+* __**`setDigitSegmentsByte(byte, callback)`**__
 
 Same as `setDigitSegments`, but it takes a byte instead of an array of bits.
 
-* __**`setDigitSymbol(n, symbol)`**__
+* __**`setDigitSymbol(n, symbol, callback)`**__
 
 Sets the symbol displayed in a digit.
 *For this to work properly, the digit should be in decode mode.* The first parameter, `n` is the digit number, from 0 up to and including 7. The `symbol` parameter is a string specifying the symbol do display: `"0"`..`"9"`, `"E"`, `"H"`, `"L"`, `"P"`, `"-"` or `" "`. The `dp` parameter is a boolean specifying whether the decimal point should be on or off.
 
-* __**`clearDisplay()`**__
+* __**`clearDisplay(callback)`**__
 
 Sets all segments for all digits off. This is a shortcut for manually calling `setDigitSegments` or `setDigitSymbol` with the appropriate params. If a decode mode wasn't specifically set beforehand, no-decode mode is assumed.
 
-* __**`setDisplayIntensity(brightness)`**__
+* __**`setDisplayIntensity(brightness, callback)`**__
 
 Sets digital control of display brightness. The `brightnesss` parameter may be a number from 0 (dimmest) up to and including 15 (brightest).
 
-* __**`setScanLimit(limit)`**__
+* __**`setScanLimit(limit, callback)`**__
 
 Sets how many digits are displayed, from 1 digit to 8 digits. The `limit` parameter specifies the number of digits displayed, counting from first to last. E.g., to display only the first digit, limit would be 1. Another e.g., to display only digits 0, 1 and 2, limit would be 3.
 
-### EOF
+#### Callbacks
+
+All methods that have a `callback` argument will invoke that function once the write to the SPI device finishes.
+
+## EOF
 
 Thanks for reading. Happy multiplexing.
