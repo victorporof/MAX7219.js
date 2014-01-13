@@ -3,6 +3,10 @@ MAX7219.js
 
 JavaScript abstraction for the MAX7219 display driver controller. Please read the datasheet for this chip [here](https://www.adafruit.com/datasheets/MAX7219.pdf).
 
+## Install
+
+`npm install max7219`
+
 ## How to use
 The "digits and segments" language isn't dissolved away by the API, to make your life easier when wiring the controller. Obviously, you can think of them as "cathodes and anodes" respectively when using this library. Multiplexing and persistence of vision is handled by the MAX7219, you only need to turn anodes on or off. Here's a quick example:
 ```javascript
