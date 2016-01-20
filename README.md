@@ -122,7 +122,7 @@ The first parameter, `n`, is the digit number, from 0 up to and including 7. The
 
 Same as `setDigitSegments`, but it takes a byte instead of an array of bits.
 
-* __**`setDigitSymbol(n, symbol, callback)`**__
+* __**`setDigitSymbol(n, symbol, dp, callback)`**__
 
 Sets the symbol displayed in a digit.
 *For this to work properly, the digit should be in decode mode.* The first parameter, `n` is the digit number, from 0 up to and including 7. The `symbol` parameter is a string specifying the symbol do display: `"0"`..`"9"`, `"E"`, `"H"`, `"L"`, `"P"`, `"-"` or `" "`. The `dp` parameter is a boolean specifying whether the decimal point should be on or off.
