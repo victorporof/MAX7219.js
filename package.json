@@ -4,7 +4,7 @@
   "description": "Abstraction for the MAX7219 display driver controller",
   "main": "MAX7219.js",
   "dependencies": {
-    "spi": "~0.1.0"
+    "spi": "~0.2.0"
   },
   "devDependencies": {},
   "scripts": {
