@@ -46,9 +46,9 @@ function MAX7219(device, count, callback) {
   this._spi = new SPI.Spi(device, {
     mode: SPI.MODE.MODE_0,
     chipSelect: SPI.CS.low
-  }, function(s) {
+  }, s => {
     s.open();
-    process.nextTick(callback || function(){});
+    process.nextTick(callback || (() => {}));
   });
 }
 
@@ -103,7 +103,7 @@ MAX7219.prototype = {
    * @param number index
    *        The index of the chip to control.
    */
-  setActiveController: function(index) {
+  setActiveController(index) {
     if (index < 0 || index >= this._totalControllers) {
       throw "Controller index is out of bounds";
     }
@@ -113,7 +113,7 @@ MAX7219.prototype = {
   /**
    * Returns which chip is currently controlled.
    */
-  getActiveController: function() {
+  getActiveController() {
     return this._activeController;
   },
 
@@ -127,7 +127,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  startup: function(callback) {
+  startup(callback) {
     this._shiftOut(MAX7219._Registers.Shutdown, 0x01, callback);
   },
 
@@ -140,7 +140,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  shutdown: function(callback) {
+  shutdown(callback) {
     this._shiftOut(MAX7219._Registers.Shutdown, 0x00, callback);
   },
 
@@ -153,7 +153,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  startDisplayTest: function(callback) {
+  startDisplayTest(callback) {
     this._shiftOut(MAX7219._Registers.DisplayTest, 0x01, callback);
   },
 
@@ -163,7 +163,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  stopDisplayTest: function(callback) {
+  stopDisplayTest(callback) {
     this._shiftOut(MAX7219._Registers.DisplayTest, 0x00, callback);
   },
 
@@ -183,7 +183,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeMode: function(modes, callback) {
+  setDecodeMode(modes, callback) {
     if (modes.length != 8) {
       throw "Invalid decode mode array";
     }
@@ -197,7 +197,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeNone: function(callback) {
+  setDecodeNone(callback) {
     this.setDecodeMode([0,0,0,0,0,0,0,0], callback);
   },
 
@@ -207,7 +207,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDecodeAll: function(callback) {
+  setDecodeAll(callback) {
     this.setDecodeMode([1,1,1,1,1,1,1,1], callback);
   },
 
@@ -234,7 +234,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSegments: function(n, segments, callback) {
+  setDigitSegments(n, segments, callback) {
     if (n < 0 || n > 7) {
       throw "Invalid digit number";
     }
@@ -250,7 +250,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSegmentsByte: function(n, byte, callback) {
+  setDigitSegmentsByte(n, byte, callback) {
     this._shiftOut(MAX7219._Registers["Digit" + n], byte, callback);
   },
 
@@ -268,7 +268,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDigitSymbol: function(n, symbol, dp, callback) {
+  setDigitSymbol(n, symbol, dp, callback) {
     if (n < 0 || n > 7) {
       throw "Invalid digit number";
     }
@@ -289,7 +289,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  clearDisplay: function(callback) {
+  clearDisplay(callback) {
     if (!this._decodeModes) {
       this.setDecodeNone();
     }
@@ -313,7 +313,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setDisplayIntensity: function(brightness, callback) {
+  setDisplayIntensity(brightness, callback) {
     if (brightness < 0 || brightness > 15) {
       throw "Invalid brightness number";
     }
@@ -331,7 +331,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  setScanLimit: function(limit, callback) {
+  setScanLimit(limit, callback) {
     if (limit < 1 || limit > 8) {
       throw "Invalid scan limit number";
     }
@@ -347,7 +347,7 @@ MAX7219.prototype = {
    *         The corresponding byte.
    *         E.g., [1,1,0,1,0,1,0,1] returns 213, or "11010101" in binary.
    */
-  encodeByte: function(bits) {
+  encodeByte(bits) {
     return bits[0] +
           (bits[1] << 1) +
           (bits[2] << 2) +
@@ -368,7 +368,7 @@ MAX7219.prototype = {
    * @param function callback [optional]
    *        Invoked once the write to the SPI device finishes.
    */
-  _shiftOut: function(firstByte, secondByte, callback) {
+  _shiftOut(firstByte, secondByte, callback) {
     if (!this._spi) {
       throw "SPI device not initialized";
     }
